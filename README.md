@@ -16,7 +16,6 @@ This Python script utilizes the NearestNeighbor class to process images from the
 - Python 3.x
 - NumPy
 - Matplotlib
-- CIFAR-10 dataset files 
 
 ## Setup and Execution
 
