@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 
+
 class NearestNeighbor:
     def __init__(self):
         pass
@@ -47,7 +48,7 @@ class NearestNeighbor:
         plt.imshow(image_reshaped)
         plt.axis('off')
         plt.title(str(label))
-        plt.show()
+
 
     def calc_l1_distance(self, image_vec1, image_vec2):
         distance = np.sum(np.abs(image_vec1 - image_vec2))
@@ -83,12 +84,21 @@ class NearestNeighbor:
 
 
 
+
 if __name__ == '__main__':
 
     nn = NearestNeighbor()
     Xtr = []
     y_path = "cifar-10-batches-py/test_batch"
     y = nn.unpickle(y_path)
+    plots = []
+    acuracy = []
+    num_columns = 5
+    figsize = (12, 3)
+    k = 1
+    correct_predictions = 0
+    n = 25
+
 
     for x in range(1, 6):
         file_path = "cifar-10-batches-py/data_batch_" + str(x)
@@ -97,15 +107,15 @@ if __name__ == '__main__':
 
     all_vectors = nn.get_all_image_vectors(Xtr)
 
-    k_numbers = [3, 5, 7]
+
     class_names = ['airplane', 'automobile', 'bird', 'cat', 'deer',
                    'dog', 'frog', 'horse', 'ship', 'truck']
 
-    for i in range(0, 10):
+    for i in range(0, n):
         single_image = nn.get_image_vector(y, i)
         label_actual = nn.get_label_y(i, y)
 
-        nearest_indices = nn.k_nearest_neighbor(all_vectors, single_image, 7)
+        nearest_indices = nn.k_nearest_neighbor(all_vectors, single_image, k)
 
         single_image = nn.reshape_image(single_image)
 
@@ -121,13 +131,58 @@ if __name__ == '__main__':
             labels.append(label)
 
         counts = np.bincount(labels)
-        # print(labels)
+
         label_i = np.argmax(counts)
         counts = np.bincount(labels)
-        # print(counts)
-        title = 'predicted: ' + class_names[label_i] + ', actual: ' + class_names[label_actual]
-        nn.visualize_image(single_image, title)
 
-# plt.subplot(1, 2, 1)
-# plt.title("Test Image")
-# labels
+        title = 'predicted: ' + class_names[label_i] + '\n' + 'actual: ' + class_names[label_actual]
+
+        plots.append((single_image, title))
+        acuracy.append((label_actual, label_i))
+
+    num_images = len(plots)
+    num_rows = int(np.ceil(num_images / num_columns))
+
+    fig, axes = plt.subplots(num_rows, num_columns, figsize=figsize)
+
+    axes = axes.flatten()
+
+    # Iterate over each subplot and display image with text
+    for i, (image, text) in enumerate(plots):
+        ax = axes[i]
+        ax.imshow(image)  # Plot the image on the subplot
+        ax.set_title(text)  # Set the title of the subplot
+        ax.axis('off')  # Hide the axes of the subplot
+
+    # Hide any remaining empty subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].axis('off')
+
+
+    plt.tight_layout()
+
+    # plt.savefig(f'images/k_{k}.png')
+    # plt.show()
+
+    # Iterate over the accuracy array
+    for actual, predicted in acuracy:
+        # If the actual and predicted labels match, increment the counter
+        if actual == predicted:
+            correct_predictions += 1
+
+    # Calculate the accuracy
+    accuracy = correct_predictions / n
+
+    print(f"The accuracy is for k={k} with n={n} is: {accuracy}")
+
+    '''
+    The accuracy is for k=1 with n=10 is: 0.1
+    The accuracy is for k=3 with n=10 is: 0.4
+    The accuracy is for k=5 with n=10 is: 0.4
+    The accuracy is for k=7 with n=10 is: 0.4
+    
+    The accuracy is for k=1 with n=25 is: 0.2 
+    The accuracy is for k=3 with n=25 is: 0.32
+    The accuracy is for k=5 with n=25 is: 0.36
+    The accuracy is for k=7 with n=25 is: 0.4
+    '''
